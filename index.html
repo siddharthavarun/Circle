@@ -756,6 +756,23 @@ body{min-height:100vh;min-height:100dvh}
 .swatches.small .sw{width:18px;height:18px}
 .swatches.small{gap:8px;margin-top:2px}
 .list-card .rhead .icon-sm{margin-right:0}
+
+/* Quiet colour on the day panels and stat cards */
+.panel.tinted{background:color-mix(in srgb,var(--cc) 6%,var(--card-2));box-shadow:inset 3px 0 0 color-mix(in srgb,var(--cc) 45%,transparent),0 1px 2px rgba(0,0,0,.04),0 6px 18px -8px rgba(0,0,0,.12)}
+.panel.tinted:hover,.panel.tinted.lit{box-shadow:inset 3px 0 0 color-mix(in srgb,var(--cc) 60%,transparent),var(--card-shadow-hover)}
+:root:not([data-theme="light"]) .panel.tinted,:root[data-theme="dark"] .panel.tinted,:root[data-mode="dark"] .panel.tinted{background:color-mix(in srgb,var(--cc) 11%,var(--card-2))}
+.m .panel.tinted{background:color-mix(in srgb,var(--cc) 6%,var(--card))}
+:root:not([data-theme="light"]) .m .panel.tinted,:root[data-theme="dark"] .m .panel.tinted,:root[data-mode="dark"] .m .panel.tinted{background:color-mix(in srgb,var(--cc) 11%,var(--card))}
+.panel.tinted .field,.panel.tinted .note-card,.panel.tinted .chipbtn,.panel.tinted .filechip{background:color-mix(in srgb,var(--card) 88%,var(--cc))}
+.cdot{width:15px;height:15px;border-radius:50%;border:none;padding:0;flex:none;align-self:center;cursor:pointer;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);transition:box-shadow .2s,transform .2s;opacity:.9}
+.cdot:hover{transform:scale(1.15);opacity:1}
+.cdot.on{box-shadow:inset 0 0 0 1px rgba(0,0,0,.12),0 0 0 2px var(--card-2),0 0 0 3.5px currentColor}
+.panelsw{margin:10px 0 2px}
+#eventsToday .row .icon-sm[data-editevent]{opacity:.5}
+#eventsToday .row:hover .icon-sm[data-editevent],#eventsToday .row .icon-sm[data-editevent]:hover{opacity:1}
+.m #eventsToday .row .icon-sm[data-editevent]{opacity:.6;width:34px;height:34px}
+.m .cdot{width:20px;height:20px}
 </style>
 
 <nav class="nav" aria-label="Main">
@@ -843,7 +860,7 @@ body{min-height:100vh;min-height:100dvh}
           <h3>Events <span id="eventCount"></span></h3>
           <ul class="rows" id="eventsToday"></ul>
         </div>
-        <div class="panel">
+        <div class="panel" id="routinePanel">
           <h3>Routines <span id="routineCount"></span></h3>
           <ul class="rows" id="routineToday"></ul>
           <p class="m-only hint">Swipe right to mark done · press and hold for more</p>
@@ -955,6 +972,49 @@ const CARD_COLOR_NAMES = ['Slate','Sage','Sand','Clay','Plum','Ink'];
 const MUTED_OF = {'#0066cc':'#78839a','#34c759':'#7f9481','#ff9f0a':'#a2917a','#ff375f':'#a18076','#bf5af2':'#8d7f99'};
 const muted = c => MUTED_OF[c] || c;
 const listColor = l => l.color || CARD_COLORS[(l.order ?? 0) % CARD_COLORS.length];
+/* Colour for the fixed panels and the stat cards */
+const PANEL_DEFAULTS = {todos:'#78839a', events:'#a2917a', routines:'#7f9481'};
+const PANEL_IDS = {todoPanel:'todos', eventsPanel:'events', routinePanel:'routines'};
+let cpickOpen = '';
+function cardColor(k){ return ((state.settings||{}).cardColors||{})[k] || PANEL_DEFAULTS[k] || CARD_COLORS[0]; }
+function swatchRow(k, c){
+  return CARD_COLORS.map((x,i) =>
+    `<button type="button" class="sw ${x===c?'on':''}" data-panelcolor="${k}|${x}" style="background:${x}" aria-label="${CARD_COLOR_NAMES[i]}"></button>`).join('');
+}
+function paintPanels(){
+  Object.keys(PANEL_IDS).forEach(id => {
+    const p = document.getElementById(id); if(!p) return;
+    const k = PANEL_IDS[id], c = cardColor(k);
+    p.classList.add('tinted'); p.style.setProperty('--cc', c);
+    const h = p.querySelector('h3'); if(!h) return;
+    let dot = h.querySelector('.cdot');
+    if(!dot){
+      dot = document.createElement('button');
+      dot.type = 'button'; dot.className = 'cdot'; dot.dataset.cpick = k;
+      dot.title = 'Card colour'; dot.setAttribute('aria-label', 'Card colour');
+      h.appendChild(dot);
+    }
+    dot.style.background = c; dot.style.color = c;
+    dot.classList.toggle('on', cpickOpen === k);
+    dot.setAttribute('aria-expanded', cpickOpen === k);
+    let row = p.querySelector('.panelsw');
+    if(cpickOpen === k){
+      if(!row){ h.insertAdjacentHTML('afterend', '<div class="swatches small panelsw" role="group" aria-label="Card colour"></div>'); row = p.querySelector('.panelsw'); }
+      row.innerHTML = swatchRow(k, c);
+    } else if(row) row.remove();
+  });
+  const tint = (grid, skipData) => {
+    if(!grid) return;
+    Array.from(grid.children).forEach((el, i) => {
+      if(!el.classList || !el.classList.contains('card')) return;
+      if(skipData && el.classList.contains('data-card')) return;
+      el.classList.add('tinted');
+      el.style.setProperty('--cc', CARD_COLORS[i % CARD_COLORS.length]);
+    });
+  };
+  tint(document.getElementById('insightGrid'), true);
+  tint(document.getElementById('deletedGrid'), false);
+}
 const COLORS = ['#0066cc','#34c759','#ff9f0a','#ff375f','#bf5af2'];
 const CHECK = '<svg viewBox="0 0 12 12"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const LS = 'circle-daily-state-v1';
@@ -1041,6 +1101,7 @@ function normalize(st){
     if(!st.highlights[k].length) delete st.highlights[k];
   });
   if(st.settings.carryOver === undefined) st.settings.carryOver = true;
+  if(!st.settings.cardColors || typeof st.settings.cardColors !== 'object') st.settings.cardColors = {};
   st.sort = (st.sort && typeof st.sort === 'object') ? st.sort : {by:'time', dir:'asc'};
   st.routines.forEach(r => { r.days = Array.isArray(r.days) ? r.days : []; r.log = r.log || {}; r.pauses = Array.isArray(r.pauses) ? r.pauses : []; r.mode = r.mode === 'weekly' ? 'weekly' : 'days'; if(r.mode==='weekly') r.target = Math.max(1, Math.min(7, r.target || 3)); });
   st.lists.forEach((l,i) => { l.items = Array.isArray(l.items) ? l.items : []; if(typeof l.order !== 'number') l.order = i; });
@@ -1571,7 +1632,7 @@ function renderToday(){
       <span class="dot" style="background:${EVENT_COLORS[ev.kind]||EVENT_COLORS.other}"></span>
       <span class="t"><span class="edit-t" data-edit="event:${ev.id}" title="Click to rename">${esc(ev.title)}</span>
         <span class="meta" style="display:block">${eventWhen(ev, viewDate)}${ev.place?' · '+esc(ev.place):''}</span></span>
-      ${noteBtn('event', ev.id, ev.notes, ev.imgs)}
+      <button class="icon-sm" data-editevent="${ev.id}" aria-label="Edit event" title="Edit">${PENCIL}</button>${noteBtn('event', ev.id, ev.notes, ev.imgs)}
       <button class="del" data-delevent="${ev.id}" aria-label="Delete event">×</button>
     </div>${noteBlock('event', ev.id, ev.notes)}</li>`).join('')
     : `<li class="empty">No events planned${viewDate===TODAY?' today':''}. <a class="link sm" href="#events" data-newevent="1">Add one ›</a></li>`;
@@ -1687,6 +1748,21 @@ function renderRoutines(){
 
 /* ---------- Render: Events ---------- */
 let evDraft = {title:'', date:'', time:'', end:'', place:'', kind:'other', notes:''};
+let evEditId = '';
+function startEventEdit(id){
+  const ev = state.events.find(x => x.id === id); if(!ev) return;
+  evEditId = id;
+  evDraft = {title: ev.title, date: ev.date, end: ev.end||'', time: ev.time||'', place: ev.place||'', kind: ev.kind||'other', notes: ev.notes||''};
+  renderEvents();
+  if(isMobile()){ showTab('events'); openSheet('event-new', 'Edit event'); const sd=$('#sheetDone'); if(sd) sd.textContent='Save'; }
+  const n = $('#evTitle'); if(n){ n.focus({preventScroll:true}); if(!isMobile()) n.scrollIntoView({behavior:'smooth', block:'center'}); }
+}
+function cancelEventEdit(){
+  evEditId = '';
+  evDraft = {title:'', date:'', time:'', end:'', place:'', kind:'other', notes:''};
+  renderEvents();
+  if(isMobile()) closeSheet();
+}
 function renderEvents(){
   const all = state.events.filter(alive).sort((a,b) => (a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
   const upcoming = all.filter(ev => (ev.end || ev.date) >= TODAY);
@@ -1704,11 +1780,13 @@ function renderEvents(){
       ${muted ? '' : `<p class="evwhen" style="color:${col}">${when}</p>`}
       <div class="evtags"><span class="evkind" style="color:${col};background:color-mix(in srgb,${col} 14%,transparent)">${EVENT_KINDS[ev.kind]||'Other'}</span></div>
       ${noteBlock('event', ev.id, ev.notes)}
-      <div class="ractions"><button class="chipbtn" data-goevent="${ev.id}">Open the day</button><span class="spacer"></span>${noteBtn('event', ev.id, ev.notes, ev.imgs)}</div>
+      <div class="ractions"><button class="chipbtn" data-editevent="${ev.id}">Edit</button><button class="chipbtn" data-goevent="${ev.id}">Open the day</button><span class="spacer"></span>${noteBtn('event', ev.id, ev.notes, ev.imgs)}</div>
     </article>`;
   };
-  const form = `<article class="card">
-    <p class="label">New event</p><h3>Put it on the map.</h3>
+  const editing = evEditId && state.events.some(x => x.id === evEditId && alive(x));
+  if(evEditId && !editing) evEditId = '';
+  const form = `<article class="card ${editing?'editing-ev':''}">
+    <p class="label">${editing?'Edit event':'New event'}</p><h3>${editing?'Change the details.':'Put it on the map.'}</h3>
     <input class="field" id="evTitle" placeholder="e.g. Flight to Lisbon" maxlength="80" value="${esc(evDraft.title)}">
     <div class="daterow">
       <label class="dfield"><span class="meta">Date</span><input type="date" id="evDate" value="${evDraft.date || viewDate}"></label>
@@ -1720,7 +1798,7 @@ function renderEvents(){
     </div>
     <div class="quickdur" role="group" aria-label="Kind">${Object.keys(EVENT_KINDS).map(k => `<button type="button" class="chipbtn ${evDraft.kind===k?'on':''}" data-evkind="${k}">${EVENT_KINDS[k]}</button>`).join('')}</div>
     <textarea class="field" id="evNotes" rows="2" maxlength="600" placeholder="Notes (optional)">${esc(evDraft.notes)}</textarea>
-    <div><button class="btn" id="evAdd">Add event</button></div>
+    <div class="ractions"><button class="btn" id="evAdd">${editing?'Save changes':'Add event'}</button>${editing?'<button class="link sm" data-evcancel="1" type="button">Cancel</button>':''}</div>
   </article>`;
   const body = upcoming.length || past.length
     ? (upcoming.length ? upcoming.map(ev => card(ev,false)).join('') : '<p class="note">Nothing coming up.</p>')
@@ -1743,6 +1821,20 @@ function addEvent(){
   const date = evDraft.date || viewDate;
   if(evDraft.end && evDraft.end < date){ toast('The end date is before the start'); return; }
   touch();
+  if(evEditId){
+    const ev = state.events.find(x => x.id === evEditId);
+    if(ev){
+      Object.assign(ev, {title, date, end: evDraft.end || '', time: evDraft.time || '',
+        place: (evDraft.place||'').trim(), kind: evDraft.kind || 'other', notes: (evDraft.notes||'').trim()});
+      evEditId = '';
+      evDraft = {title:'', date:'', time:'', end:'', place:'', kind:'other', notes:''};
+      commit();
+      toast(`${title} updated`);
+      if(isMobile()) closeSheet();
+      return;
+    }
+    evEditId = '';
+  }
   state.events.push({id:uid(), title, date, end: evDraft.end || '', time: evDraft.time || '', place: (evDraft.place||'').trim(),
     kind: evDraft.kind || 'other', notes: (evDraft.notes||'').trim(), imgs:[], files:[], added: Date.now()});
   evDraft = {title:'', date:'', time:'', end:'', place:'', kind:'other', notes:''};
@@ -1896,6 +1988,7 @@ function safely(name, fn){ try{ fn(); }catch(err){ console.error('render ' + nam
 function renderAll(){
   safely('today', renderToday); safely('routines', renderRoutines); safely('events', renderEvents); safely('insights', renderInsights);
   safely('lists', renderLists); safely('deleted', renderDeleted); safely('images', hydrateImages);
+  safely('colours', paintPanels);
 }
 
 /* ---------- Priority menu ---------- */
@@ -2316,10 +2409,19 @@ document.addEventListener('click', e => {
 });
 
 document.addEventListener('click', e => {
+  if(cpickOpen && !e.target.closest('.panelsw') && !e.target.closest('[data-cpick]')){ cpickOpen=''; paintPanels(); }
+}, true);
+document.addEventListener('click', e => {
   const b = e.target.closest('button'); if(!b) return; const d = b.dataset;
   if(b.id === 'evAdd'){ addEvent(); }
   else if(d.evkind){ readEvDraft(); evDraft.kind = d.evkind; renderEvents(); }
-  else if(d.delevent){ softDelete('events', d.delevent, 'Event'); }
+  else if(d.editevent){ startEventEdit(d.editevent); }
+  else if(d.evcancel){ cancelEventEdit(); }
+  else if(d.cpick){ cpickOpen = cpickOpen === d.cpick ? '' : d.cpick; paintPanels(); }
+  else if(d.panelcolor){ const [k,c] = d.panelcolor.split('|'); state.settings = state.settings||{};
+    state.settings.cardColors = state.settings.cardColors||{}; state.settings.cardColors[k] = c;
+    cpickOpen = ''; touch(); save(); paintPanels(); }
+  else if(d.delevent){ if(d.delevent === evEditId){ evEditId=''; } softDelete('events', d.delevent, 'Event'); }
   else if(d.goevent){ const ev = state.events.find(x => x.id === d.goevent); if(ev){ viewDate = ev.date; if(isMobile()) showTab('today'); else $('#today').scrollIntoView({behavior:'smooth'}); renderToday(); } }
   else if(d.listpick){ listView = d.listpick; renderLists(); requestAnimationFrame(() => slideChip(true)); }
   else if(d.fold){ openLists[d.fold] = !openLists[d.fold]; renderLists(); }
@@ -3132,6 +3234,7 @@ function openSheet(mode, title){
 function closeSheet(){
   if(!sheetMode) return;
   if(sheetMode==='todo-edit') saveEditFields(true);
+  if(sheetMode==='event-new' && evEditId){ evEditId=''; evDraft={title:'', date:'', time:'', end:'', place:'', kind:'other', notes:''}; setTimeout(renderEvents,0); }
   sheetMode=null; sheet.classList.remove('open'); sheetScrim.classList.remove('on'); document.body.classList.remove('sheet-open');
   sheet.style.transform='';
   if(document.activeElement && sheet.contains(document.activeElement)) document.activeElement.blur();
