@@ -1,5 +1,5 @@
 // Circle Daily service worker: works offline, picks up new versions when online.
-const VERSION = 'circle-v24';
+const VERSION = 'circle-v27';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/icon.svg'];
 
 self.addEventListener('install', e => {

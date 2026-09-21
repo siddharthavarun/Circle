@@ -769,6 +769,34 @@ body{min-height:100vh;min-height:100dvh}
 .cdot:hover{transform:scale(1.15);opacity:1}
 .cdot.on{box-shadow:inset 0 0 0 1px rgba(0,0,0,.12),0 0 0 2px var(--card-2),0 0 0 3.5px currentColor}
 .panelsw{margin:10px 0 2px}
+/* Icon tiles, Health-app style */
+.tile{flex:none;align-self:center;display:grid;place-items:center;width:30px;height:30px;border-radius:9px;color:#fff;
+  background:linear-gradient(165deg,color-mix(in srgb,var(--tc,var(--accent)) 90%,#ffffff),color-mix(in srgb,var(--tc,var(--accent)) 92%,#000000));
+  box-shadow:0 2px 6px -2px color-mix(in srgb,var(--tc,var(--accent)) 60%,transparent),inset 0 1px 0 rgba(255,255,255,.3)}
+.tile svg{width:17px;height:17px;stroke-width:2.15}
+.tile.sm{width:24px;height:24px;border-radius:7px}
+.tile.sm svg{width:14px;height:14px}
+.tile.lg{width:36px;height:36px;border-radius:11px}
+.tile.lg svg{width:20px;height:20px}
+.m .tile{width:32px;height:32px}
+.m .tile.sm{width:26px;height:26px}
+.card .rhead .tile{margin-right:2px}
+.list-card .rhead{gap:6px}
+.list-card .rhead h3{font-size:19px}
+.m .list-card .rhead{gap:4px}
+.m .list-card .rhead h3{font-size:17px}
+.m .routine .rhead{gap:6px}
+.m .routine .rhead .tile{width:26px;height:26px;border-radius:8px}
+.m .routine .rhead .tile svg{width:15px;height:15px}
+.m .routine .rhead h3{font-size:19px}
+.m .event-card .rhead .tile{width:28px;height:28px}
+.panel h3{justify-content:flex-start;align-items:center}
+.panel h3 .cdot{margin-left:auto}
+.panel h3 span.tile{margin-right:2px;color:#fff;font-size:0}
+.chead{display:flex;align-items:center;gap:10px}
+.chead .label{margin:0}
+.hilite .meta{display:flex;align-items:center;gap:8px}
+.hilite .meta .tile{align-self:center}
 #eventsToday .row .icon-sm[data-editevent]{opacity:.5}
 #eventsToday .row:hover .icon-sm[data-editevent],#eventsToday .row .icon-sm[data-editevent]:hover{opacity:1}
 .m #eventsToday .row .icon-sm[data-editevent]{opacity:.6;width:34px;height:34px}
@@ -972,6 +1000,32 @@ const CARD_COLOR_NAMES = ['Slate','Sage','Sand','Clay','Plum','Ink'];
 const MUTED_OF = {'#0066cc':'#78839a','#34c759':'#7f9481','#ff9f0a':'#a2917a','#ff375f':'#a18076','#bf5af2':'#8d7f99'};
 const muted = c => MUTED_OF[c] || c;
 const listColor = l => l.color || CARD_COLORS[(l.order ?? 0) % CARD_COLORS.length];
+/* Small drawn glyphs, in the spirit of a health app's coloured tiles */
+const G = (d, extra) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>${extra||''}`;
+const GLYPH = {
+  todos:    G('<circle cx="12" cy="12" r="8.6"/><path d="M8.2 12.3l2.7 2.7 5-5.4"/>'),
+  events:   G('<rect x="3.4" y="5.2" width="17.2" height="15.2" rx="3.4"/><path d="M3.4 9.9h17.2M8.2 3.2v4M15.8 3.2v4"/>'),
+  routines: G('<path d="M4 11.4a8 8 0 0 1 13.6-5.6L20 8.2M20 3.6v4.6h-4.6M20 12.6a8 8 0 0 1-13.6 5.6L4 15.8M4 20.4v-4.6h4.6"/>'),
+  insights: G('<path d="M4.6 19.4V12M12 19.4V4.6M19.4 19.4v-5.1"/>'),
+  lists:    G('<path d="M3.6 6.6l1.7 1.7 2.6-2.9M3.6 12.6l1.7 1.7 2.6-2.9M3.6 18.6l1.7 1.7 2.6-2.9M11.6 6.4h8.8M11.6 12.4h8.8M11.6 18.4h8.8"/>'),
+  trash:    G('<path d="M3.8 6.4h16.4M9.2 6.1V3.6h5.6v2.5M5.9 6.4l.9 13.8h10.4l.9-13.8"/>'),
+  spark:    G('<path d="M12 3.4l1.9 4.9 4.9 1.9-4.9 1.9L12 17l-1.9-4.9L5.2 10.2l4.9-1.9z"/><path d="M18.6 16.2l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/>'),
+  flame:    G('<path d="M12 3.2s5.4 4 5.4 8.6a5.4 5.4 0 0 1-10.8 0c0-1.6.7-3 1.6-4.2.3 1.3 1 2.2 1.9 2.4.6-2.6.3-4.7 1.9-6.8z"/>'),
+  timer:    G('<circle cx="12" cy="13.2" r="7.6"/><path d="M12 9.2v4l2.6 1.7M9.4 2.8h5.2"/>'),
+  target:   G('<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.2"/><circle cx="12" cy="12" r=".6" fill="currentColor"/>'),
+  pulse:    G('<path d="M3 12.4h4l2.3-5.6 3.6 10.6 2.2-5h5.9"/>'),
+  data:     G('<ellipse cx="12" cy="6.2" rx="7.6" ry="3"/><path d="M4.4 6.2v11.6c0 1.7 3.4 3 7.6 3s7.6-1.3 7.6-3V6.2M4.4 12c0 1.7 3.4 3 7.6 3s7.6-1.3 7.6-3"/>'),
+  travel:   G('<path d="M4.2 14.6l2.4-.7 3.1 1.8 4.4-1.7-5.3-4.2 2.2-.9 6 2.6 3.3-1.2a1.9 1.9 0 1 1 1 3.4l-12.2 4.6-2.4-1.5z"/><path d="M4.4 20.6h15"/>'),
+  work:     G('<rect x="3.2" y="7" width="17.6" height="13" rx="3"/><path d="M8.8 7V5.2A1.8 1.8 0 0 1 10.6 3.4h2.8A1.8 1.8 0 0 1 15.2 5.2V7M3.2 12.6h17.6"/>'),
+  social:   G('<circle cx="9.2" cy="8.4" r="3.4"/><path d="M3.4 19.8c0-3.1 2.6-5.2 5.8-5.2s5.8 2.1 5.8 5.2"/><path d="M16.2 6.2a3.2 3.2 0 0 1 0 6.1M17.4 14.9c2 .6 3.4 2.3 3.4 4.6"/>'),
+  health:   G('<path d="M12 20.2S3.8 15.4 3.8 9.6A4.4 4.4 0 0 1 12 7.2a4.4 4.4 0 0 1 8.2 2.4c0 5.8-8.2 10.6-8.2 10.6z"/>'),
+  other:    G('<circle cx="12" cy="12" r="8.4"/><path d="M12 7.6v4.8l3.2 2"/>')
+};
+const VIVID_OF = {'#78839a':'#0a84ff','#7f9481':'#2fb865','#a2917a':'#f0a12c','#a18076':'#f2674f','#8d7f99':'#a06ee8','#6f7479':'#64748b',
+  '#0066cc':'#0066cc','#34c759':'#34c759','#ff9f0a':'#ff9f0a','#ff375f':'#ff375f','#bf5af2':'#bf5af2'};
+const vivid = c => VIVID_OF[c] || c;
+const tile = (k, c, size) => `<span class="tile ${size||''}" style="--tc:${vivid(c)}" aria-hidden="true">${GLYPH[k]||GLYPH.other}</span>`;
+const EVENT_GLYPH = {travel:'travel', work:'work', social:'social', health:'health', other:'other'};
 /* Colour for the fixed panels and the stat cards */
 const PANEL_DEFAULTS = {todos:'#78839a', events:'#a2917a', routines:'#7f9481'};
 const PANEL_IDS = {todoPanel:'todos', eventsPanel:'events', routinePanel:'routines'};
@@ -987,6 +1041,9 @@ function paintPanels(){
     const k = PANEL_IDS[id], c = cardColor(k);
     p.classList.add('tinted'); p.style.setProperty('--cc', c);
     const h = p.querySelector('h3'); if(!h) return;
+    let tl = h.querySelector('.tile');
+    if(!tl){ h.insertAdjacentHTML('afterbegin', tile(k, c)); tl = h.querySelector('.tile'); }
+    tl.style.setProperty('--tc', vivid(c));
     let dot = h.querySelector('.cdot');
     if(!dot){
       dot = document.createElement('button');
@@ -1012,6 +1069,8 @@ function paintPanels(){
       el.style.setProperty('--cc', CARD_COLORS[i % CARD_COLORS.length]);
     });
   };
+  const hl = document.querySelector('.hilite > .meta');
+  if(hl && !hl.querySelector('.tile')) hl.insertAdjacentHTML('afterbegin', tile('spark', '#a2917a', 'sm'));
   tint(document.getElementById('insightGrid'), true);
   tint(document.getElementById('deletedGrid'), false);
 }
@@ -1629,7 +1688,7 @@ function renderToday(){
   $('#eventCount').textContent = evs.length ? evs.length : '';
   $('#eventsToday').innerHTML = evs.length ? evs.map(ev => `
     <li class="item"><div class="row">
-      <span class="dot" style="background:${EVENT_COLORS[ev.kind]||EVENT_COLORS.other}"></span>
+      ${tile(EVENT_GLYPH[ev.kind]||'other', EVENT_COLORS[ev.kind]||EVENT_COLORS.other, 'sm')}
       <span class="t"><span class="edit-t" data-edit="event:${ev.id}" title="Click to rename">${esc(ev.title)}</span>
         <span class="meta" style="display:block">${eventWhen(ev, viewDate)}${ev.place?' · '+esc(ev.place):''}</span></span>
       <button class="icon-sm" data-editevent="${ev.id}" aria-label="Edit event" title="Edit">${PENCIL}</button>${noteBtn('event', ev.id, ev.notes, ev.imgs)}
@@ -1645,7 +1704,7 @@ function renderToday(){
     <li class="item">
       <div class="row ${r.log[viewDate]?'done':''}">
         <button class="chk" data-rtick="${r.id}" aria-label="${r.log[viewDate]?'Mark not done':'Mark done'}: ${esc(r.name)}" ${future?'disabled title="You can tick this on the day"':''}>${CHECK}</button>
-        <span class="dot" style="background:${r.color}"></span>
+        ${tile('routines', muted(r.color), 'sm')}
         <span class="t"><span class="edit-t" data-edit="routine:${r.id}" title="Click to rename">${esc(r.name)}</span>${r.end?`<span class="meta" style="display:block">Until ${short(r.end)}</span>`:''}</span>
         <span class="meta">${streak(r)}d streak</span>
         ${noteBtn('routine',r.id,r.notes,r.imgs)}
@@ -1705,7 +1764,7 @@ function renderRoutines(){
       : st==='completed' ? `<span class="meta">${r30===null?'Range finished':r30+'% kept overall'}</span>`
       : `<span class="meta">Not started yet</span>`;
     return `<article class="card routine tinted s-${st}" style="--cc:${muted(r.color)}">
-      <div class="rhead"><span class="dot" style="background:${r.color}"></span><h3 class="edit-t" data-edit="routine:${r.id}" title="Click to rename">${esc(r.name)}</h3><span class="status st-${st}">${STATUS[st]}</span><button class="icon-sm danger" data-delroutine="${r.id}" aria-label="Delete routine" title="Delete">${TRASH}</button></div>
+      <div class="rhead">${tile('routines', muted(r.color))}<h3 class="edit-t" data-edit="routine:${r.id}" title="Click to rename">${esc(r.name)}</h3><span class="status st-${st}">${STATUS[st]}</span><button class="icon-sm danger" data-delroutine="${r.id}" aria-label="Delete routine" title="Delete">${TRASH}</button></div>
       <p class="meta">${isWeekly(r) ? weekTarget(r)+'× a week' : (r.days.length===7?'Every day':r.days.slice().sort().map(d=>['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d]).join(' · '))}${!r.end && st!=='upcoming' ? ' · since '+short(rStart(r)) : ''}</p>
       ${weekly}${range}
       <div class="stats"><div><b>${s}</b><span>${isWeekly(r)?'week streak':'day streak'}</span></div><div><b>${r30===null?'—':r30+'%'}</b><span>${st==='completed'?'overall':'last 30 days'}</span></div></div>
@@ -1773,7 +1832,7 @@ function renderEvents(){
     const until = diffDays(TODAY, ev.date);
     const when = until === 0 ? 'Today' : until === 1 ? 'Tomorrow' : until > 1 ? 'In ' + until + ' days' : (ev.end && ev.end >= TODAY ? 'On now' : short(ev.date));
     return `<article class="card event-card tinted ${muted?'past':''}" style="--evc:${col};--cc:${col}">
-      <div class="rhead"><span class="dot" style="background:${col}"></span>
+      <div class="rhead">${tile(EVENT_GLYPH[ev.kind]||'other', col)}
         <h3 class="edit-t" data-edit="event:${ev.id}" title="Click to rename">${esc(ev.title)}</h3>
         <button class="icon-sm danger" data-delevent="${ev.id}" aria-label="Delete event" title="Delete">${TRASH}</button></div>
       <p class="meta">${eventSpan(ev)}${days>1?` · ${days} days`:''}${ev.time?' · '+fmtTime(ev.time):''}${ev.place?' · '+esc(ev.place):''}</p>
@@ -1866,15 +1925,15 @@ function renderInsights(){
   const rates = live.map(r=>({r, v: rStatus(r)==='completed' ? rangeRate(r) : rate(r,30)})).sort((a,b)=>(b.v??-1)-(a.v??-1));
   const openHigh = state.todos.filter(t=>alive(t) && !t.done && t.priority==='high' && t.date<=TODAY).length;
   $('#insightGrid').innerHTML = `
-    <article class="card wide chart"><p class="label">Last 14 days</p><h3>Daily completion</h3>${chart}</article>
-    <article class="card"><p class="label">This week</p><div class="kpi">${weekPct}<small>%</small></div><p class="note">${delta}.</p></article>
-    <article class="card"><p class="label">Longest active streak</p><div class="kpi">${best?best.s:0}<small>days</small></div><p class="note">${best? esc(best.r.name)+' is on a roll.' : 'Add a routine to start one.'}</p></article>
-    <article class="card"><p class="label">Focus time · 7 days</p><div class="kpi">${Math.floor(focusMinutes(7)/60)}<small>h</small> ${focusMinutes(7)%60}<small>m</small></div><p class="note">${focusMinutes(7) ? 'Deep work adds up.' : 'Star three tasks and start a timer.'}</p></article>
-    <article class="card"><p class="label">To-dos done · 7 days</p><div class="kpi">${tasksDone}</div><p class="note">${openHigh ? `${openHigh} high-priority ${openHigh===1?'task is':'tasks are'} still open.` : 'No high-priority tasks waiting.'}</p></article>
-    <article class="card"><p class="label">Consistency · 30 days</p>
+    <article class="card wide chart"><div class="chead">${tile('pulse', CARD_COLORS[0])}<p class="label">Last 14 days</p></div><h3>Daily completion</h3>${chart}</article>
+    <article class="card"><div class="chead">${tile('target', CARD_COLORS[1])}<p class="label">This week</p></div><div class="kpi">${weekPct}<small>%</small></div><p class="note">${delta}.</p></article>
+    <article class="card"><div class="chead">${tile('flame', CARD_COLORS[2])}<p class="label">Longest active streak</p></div><div class="kpi">${best?best.s:0}<small>days</small></div><p class="note">${best? esc(best.r.name)+' is on a roll.' : 'Add a routine to start one.'}</p></article>
+    <article class="card"><div class="chead">${tile('timer', CARD_COLORS[3])}<p class="label">Focus time · 7 days</p></div><div class="kpi">${Math.floor(focusMinutes(7)/60)}<small>h</small> ${focusMinutes(7)%60}<small>m</small></div><p class="note">${focusMinutes(7) ? 'Deep work adds up.' : 'Star three tasks and start a timer.'}</p></article>
+    <article class="card"><div class="chead">${tile('todos', CARD_COLORS[4])}<p class="label">To-dos done · 7 days</p></div><div class="kpi">${tasksDone}</div><p class="note">${openHigh ? `${openHigh} high-priority ${openHigh===1?'task is':'tasks are'} still open.` : 'No high-priority tasks waiting.'}</p></article>
+    <article class="card"><div class="chead">${tile('insights', CARD_COLORS[5])}<p class="label">Consistency · 30 days</p></div>
       ${rates.length ? rates.map(({r,v}) => `<div class="rate-row"><span>${esc(r.name)}${rStatus(r)!=='active'?` <span class="status st-${rStatus(r)}">${STATUS[rStatus(r)]}</span>`:''}</span><span class="n">${v===null?'—':v+'%'}</span><div class="bar"><i style="width:${v||0}%;background:${r.color}"></i></div></div>`).join('') : '<p class="note">No routines yet.</p>'}
     </article>
-    <article class="card wide"><p class="label">Weekly review · last 7 days</p><h3>${weekPct>=80?'A strong week.':weekPct>=50?'Steady progress.':'Room to grow.'}</h3>
+    <article class="card wide"><div class="chead">${tile('spark', CARD_COLORS[0])}<p class="label">Weekly review · last 7 days</p></div><h3>${weekPct>=80?'A strong week.':weekPct>=50?'Steady progress.':'Room to grow.'}</h3>
       <div class="review">
         <div><b>${tasksDone}</b><span>tasks finished</span></div>
         <div><b>${wd}</b><span>of ${wt} things done</span></div>
@@ -1887,7 +1946,7 @@ function renderInsights(){
       })()}
     </article>
     <article class="card full data-card">
-      <div><p class="label">Your data</p><h3>Back up and move.</h3><p class="note">Save a backup file, or bring in data from another copy of Circle.</p></div>
+      <div><div class="chead">${tile('data', CARD_COLORS[5])}<p class="label">Your data</p></div><h3>Back up and move.</h3><p class="note">Save a backup file, or bring in data from another copy of Circle.</p></div>
       <div class="data-actions"><button type="button" class="btn sm" data-export="1">Export backup</button>
         <label class="chipbtn" for="importFile">Import backup</label><input type="file" id="importFile" accept=".json,application/json" hidden>
         <button type="button" class="chipbtn" data-ics="1">Calendar file (.ics)</button>
@@ -1911,7 +1970,7 @@ function renderLists(){
     const folded = listView === 'all' && !openLists[l.id];
     const cc = listColor(l);
     return `<article class="card list-card tinted ${folded?'folded':''}" data-listid="${l.id}" style="--cc:${cc}">
-      <div class="rhead">${all.length>1 && listView==='all' ? `<button type="button" class="grip lgrip" data-lgrip="${l.id}" aria-label="Drag to reorder ${esc(l.name)}">${GRIP}</button>` : ''}<button type="button" class="fold" data-fold="${l.id}" aria-expanded="${!folded}" aria-label="${folded?'Show items':'Hide items'}">${folded?'+':'−'}</button><h3 class="edit-t" data-edit="list:${l.id}" title="Click to rename">${esc(l.name)}</h3>${noteBtn('list', l.id, l.notes, l.imgs)}<button class="icon-sm danger" data-dellist="${l.id}" aria-label="Delete checklist" title="Delete">${TRASH}</button></div>
+      <div class="rhead">${all.length>1 && listView==='all' ? `<button type="button" class="grip lgrip" data-lgrip="${l.id}" aria-label="Drag to reorder ${esc(l.name)}">${GRIP}</button>` : ''}<button type="button" class="fold" data-fold="${l.id}" aria-expanded="${!folded}" aria-label="${folded?'Show items':'Hide items'}">${folded?'+':'−'}</button>${tile('lists', cc, 'sm')}<h3 class="edit-t" data-edit="list:${l.id}" title="Click to rename">${esc(l.name)}</h3>${noteBtn('list', l.id, l.notes, l.imgs)}<button class="icon-sm danger" data-dellist="${l.id}" aria-label="Delete checklist" title="Delete">${TRASH}</button></div>
       <div><div class="bar"><i style="width:${n?d/n*100:0}%;background:${cc}"></i></div><p class="meta count" style="margin-top:6px">${d} of ${n} checked</p></div>
       ${folded ? '' : `
       ${noteBlock('list', l.id, l.notes)}
@@ -1967,8 +2026,10 @@ function renderDeleted(){
   $('#delCount').hidden = !n;
   const tb=$('#tabDelCount'); if(tb){ tb.textContent = n>99?'99+':n; tb.hidden = !n; }
   if($('#deleted').hidden && !(isMobile() && tab==='deleted')) return;
+  const DEL_GLYPH = {todos:'todos', routines:'routines', lists:'lists', events:'events'};
+  const DEL_COLOR = {todos:CARD_COLORS[0], routines:CARD_COLORS[1], lists:CARD_COLORS[2], events:CARD_COLORS[3]};
   const group = (title, coll, items, name, sub) => `<article class="card">
-    <p class="label">${title}</p><h3>${items.length} deleted</h3>
+    <div class="chead">${tile(DEL_GLYPH[coll]||'trash', DEL_COLOR[coll]||CARD_COLORS[5])}<p class="label">${title}</p></div><h3>${items.length} deleted</h3>
     ${items.length ? `<ul class="rows" style="margin:0">${items.slice().sort((a,b)=>b.deleted-a.deleted).map(x => `
       <li class="row"><span class="t">${esc(name(x))}<span class="meta" style="display:block">${sub(x)} · deleted ${ago(x.deleted)}</span></span>
       ${pendingPurge===coll+':'+x.id
