@@ -495,7 +495,8 @@ body{min-height:100vh;min-height:100dvh}
 .sheet #todoForm .note-new{display:block;resize:none;min-height:96px}
 .sheet .field{background:var(--card);padding:13px 14px;border-radius:14px}
 .sheet .card{background:none;box-shadow:none!important;padding:0;transform:none!important}
-.sheet .card::before,.sheet .card::after,.sheet .card > .label,.sheet .card > h3,.sheet #rAdd,.sheet #listForm .btn,.sheet .card > .note{display:none!important}
+.sheet .card::before,.sheet .card::after,.sheet .card > .label,.sheet .card > h3,.sheet #rAdd,.sheet #listForm .btn,.sheet .card > .note,.sheet [data-rcancel],.sheet [data-evcancel]{display:none!important}
+.sheet .card > .ractions{border-top:0;padding:0;margin:0}
 .sheet .dfield input{background:var(--card);padding:11px 12px}
 .sheet .day{width:40px;height:40px}
 .sheet .quickdur .chipbtn{padding:7px 12px;font-size:13px}
@@ -1719,6 +1720,22 @@ function renderToday(){
 const PAUSE_I = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.5v9M10.5 3.5v9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
 const PLAY_I = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.3v9.4l7.5-4.7z" fill="currentColor"/></svg>';
 let draft = {name:'', days:[0,1,2,3,4,5,6], color:COLORS[0], start:TODAY, end:'', mode:'days', target:3};
+let rEditId = '';
+const freshDraft = () => ({name:'', days:[0,1,2,3,4,5,6], color:COLORS[(state.routines.filter(alive).length)%COLORS.length], start:TODAY, end:'', mode:'days', target:3});
+function startRoutineEdit(id){
+  const r = state.routines.find(x => x.id === id); if(!r) return;
+  rEditId = id;
+  draft = {name:r.name, days:(r.days||[]).slice(), color:r.color || COLORS[0], start:rStart(r), end:r.end || '',
+           mode:isWeekly(r) ? 'weekly' : 'days', target:weekTarget(r)};
+  renderRoutines();
+  if(isMobile()){ showTab('routines'); openSheet('routine-new', 'Edit routine'); const sd=$('#sheetDone'); if(sd) sd.textContent='Save'; }
+  const n = $('#rName');
+  if(n){ n.focus({preventScroll:true}); if(!isMobile()) n.scrollIntoView({behavior:'smooth', block:'center'}); }
+}
+function cancelRoutineEdit(){
+  rEditId = ''; draft = freshDraft(); renderRoutines();
+  if(isMobile()) closeSheet();
+}
 let somedayOpen = true;
 let listView = 'all';
 const openLists = {};   // folded unless you open one; resets when the app restarts
@@ -1772,15 +1789,18 @@ function renderRoutines(){
       <div class="heat" style="grid-template-columns:repeat(12,1fr);grid-auto-flow:column;grid-template-rows:repeat(7,auto)">${cells}</div>
       ${noteBlock('routine',r.id,r.notes)}
       <div class="ractions">${main}<span class="spacer"></span>
+        <button class="chipbtn" data-editroutine="${r.id}">${PENCIL}Edit</button>
         ${st!=='completed' ? `<button class="chipbtn" data-pause="${r.id}">${st==='paused'?PLAY_I+'Resume':PAUSE_I+'Pause'}</button>` : ''}
         ${noteBtn('routine',r.id,r.notes,r.imgs)}
       </div>
     </article>`;
   }).join('');
   const durOn = n => n===0 ? !draft.end : draft.end===addDays(draft.start||TODAY, n-1);
+  const rEditing = rEditId && state.routines.some(x => x.id === rEditId && alive(x));
+  if(rEditId && !rEditing) rEditId = '';
   const form = `<article class="card">
-    <p class="label">New routine</p>
-    <h3>Build a habit.</h3>
+    <p class="label">${rEditing?'Edit routine':'New routine'}</p>
+    <h3>${rEditing?'Change the details.':'Build a habit.'}</h3>
     <input class="field" id="rName" placeholder="e.g. Stretch 10 min" maxlength="60" value="${esc(draft.name)}">
     <div class="modeswitch" role="group" aria-label="How often">
       <button type="button" class="chipbtn ${draft.mode!=='weekly'?'on':''}" data-rmode="days">Set days</button>
@@ -1800,7 +1820,7 @@ function renderRoutines(){
          : 'Not today — next on ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][draft.days.slice().sort().find(d => d>weekday(TODAY)) ?? draft.days.slice().sort()[0]])}</p>
     <div class="quickdur" role="group" aria-label="Duration">${DURS.map(([l,n])=>`<button type="button" class="chipbtn ${durOn(n)?'on':''}" data-dur="${n}">${l}</button>`).join('')}</div>
     <div class="swatches" role="group" aria-label="Color">${COLORS.map(c=>`<button type="button" class="sw ${draft.color===c?'on':''}" data-color="${c}" style="background:${c}" aria-label="Color ${c}"></button>`).join('')}</div>
-    <div><button class="btn" id="rAdd">Add routine</button></div>
+    <div class="ractions"><button class="btn" id="rAdd">${rEditing?'Save changes':'Add routine'}</button>${rEditing?'<button class="link sm" data-rcancel="1" type="button">Cancel</button>':''}</div>
   </article>`;
   if(isMobile()){ $('#routineGrid').innerHTML = cards || '<p class="note">No routines yet. Tap + to build your first one.</p>'; $('#mRoutineForm').innerHTML = form; }
   else { $('#mRoutineForm').innerHTML = ''; $('#routineGrid').innerHTML = form + cards; }
@@ -2478,6 +2498,8 @@ document.addEventListener('click', e => {
   if(b.id === 'evAdd'){ addEvent(); }
   else if(d.evkind){ readEvDraft(); evDraft.kind = d.evkind; renderEvents(); }
   else if(d.editevent){ startEventEdit(d.editevent); }
+  else if(d.editroutine){ startRoutineEdit(d.editroutine); }
+  else if(d.rcancel){ cancelRoutineEdit(); }
   else if(d.evcancel){ cancelEventEdit(); }
   else if(d.cpick){ cpickOpen = cpickOpen === d.cpick ? '' : d.cpick; paintPanels(); }
   else if(d.panelcolor){ const [k,c] = d.panelcolor.split('|'); state.settings = state.settings||{};
@@ -3036,7 +3058,7 @@ document.addEventListener('click', e => {
     if(open){ if(open.from>=TODAY) r.pauses=r.pauses.filter(p=>p!==open); else open.to=TODAY; touch(); commit(); toast(`${r.name} resumed`); }
     else { r.pauses.push({from:TODAY, to:null}); touch(); commit(); toast(`${r.name} paused — your streak is kept`); }
   }
-  else if(d.delroutine){ softDelete('routines', d.delroutine, 'Routine'); }
+  else if(d.delroutine){ if(d.delroutine===rEditId){ rEditId=''; draft=freshDraft(); } softDelete('routines', d.delroutine, 'Routine'); }
   else if(d.dday){ const i=+d.dday; draft.days = draft.days.includes(i)? draft.days.filter(x=>x!==i) : [...draft.days,i]; renderRoutines(); }
   else if(d.dur!==undefined){ const n=+d.dur; draft.start = draft.start||TODAY; draft.end = n ? addDays(draft.start, n-1) : ''; renderRoutines(); }
   else if(d.color){ draft.color=d.color; renderRoutines(); }
@@ -3044,9 +3066,21 @@ document.addEventListener('click', e => {
     const name=(draft.name||'').trim(); if(!name){ $('#rName').focus(); toast('Give your routine a name'); return; }
     if(draft.mode!=='weekly' && !draft.days.length){ toast('Pick at least one day'); return; }
     if(draft.end && draft.end < draft.start){ toast('End date must be on or after the start date'); return; }
-    touch(); state.routines.push({id:uid(), name, color:draft.color, days:draft.mode==='weekly'?[0,1,2,3,4,5,6]:draft.days.slice(),
+    touch();
+    if(rEditId){
+      const r = state.routines.find(x => x.id === rEditId);
+      if(r){
+        Object.assign(r, {name, color:draft.color, days:draft.mode==='weekly'?[0,1,2,3,4,5,6]:draft.days.slice(),
+          mode:draft.mode, target:draft.target, start:draft.start||TODAY, end:draft.end||null});
+        rEditId=''; draft=freshDraft(); commit(); toast(`${name} updated`);
+        if(isMobile()) closeSheet();
+        return;
+      }
+      rEditId='';
+    }
+    state.routines.push({id:uid(), name, color:draft.color, days:draft.mode==='weekly'?[0,1,2,3,4,5,6]:draft.days.slice(),
       mode:draft.mode, target:draft.target, created:TODAY, start:draft.start||TODAY, end:draft.end||null, log:{}, notes:'', pauses:[]});
-    draft={name:'', days:[0,1,2,3,4,5,6], color:COLORS[(state.routines.length)%COLORS.length], start:TODAY, end:'', mode:'days', target:3}; commit(); toast(`${name} added`);
+    draft=freshDraft(); commit(); toast(`${name} added`);
   }
   else if(d.item){
     const [lid,iid]=d.item.split(':'); const L=state.lists.find(x=>x.id===lid); const it=L && L.items.find(x=>x.id===iid);
@@ -3296,6 +3330,7 @@ function openSheet(mode, title){
 function closeSheet(){
   if(!sheetMode) return;
   if(sheetMode==='todo-edit') saveEditFields(true);
+  if(sheetMode==='routine-new' && rEditId){ rEditId=''; draft=freshDraft(); setTimeout(renderRoutines,0); }
   if(sheetMode==='event-new' && evEditId){ evEditId=''; evDraft={title:'', date:'', time:'', end:'', place:'', kind:'other', notes:''}; setTimeout(renderEvents,0); }
   sheetMode=null; sheet.classList.remove('open'); sheetScrim.classList.remove('on'); document.body.classList.remove('sheet-open');
   sheet.style.transform='';
@@ -3409,6 +3444,7 @@ function openRoutineActions(id){
     <div class="act-list">
       ${st==='active' && due ? `<button class="act" data-act="done">${TICK}<span>${done?'Mark not done today':'Mark done today'}</span></button>` : ''}
       ${st!=='completed' ? `<button class="act" data-act="pause">${st==='paused'?PLAY_I:PAUSE_I}<span>${st==='paused'?'Resume routine':'Pause routine'}</span></button>` : ''}
+      <button class="act" data-act="edit">${PENCIL}<span>Edit details</span></button>
       <button class="act" data-act="rename">${PENCIL}<span>Rename</span></button>
       <button class="act" data-act="note">${NOTE_ICON}<span>${r.notes?'Edit note':'Add note'}</span></button>
       <button class="act danger" data-act="delete">${TRASH}<span>Delete routine</span></button>
@@ -3421,6 +3457,7 @@ $('#mActions').addEventListener('click', e => {
   if(a.dataset.act==='done'){ vibrate(12); fire('rtoday', id); }
   else if(a.dataset.act==='pause') fire('pause', id);
   else if(a.dataset.act==='delete') fire('delroutine', id);
+  else if(a.dataset.act==='edit') setTimeout(() => startRoutineEdit(id), 260);
   else if(a.dataset.act==='rename'){
     setTimeout(() => { const el = document.querySelector(`[data-edit="routine:${id}"]`); if(el){ el.scrollIntoView({block:'center'}); startEdit(el); } }, 260);
   }
