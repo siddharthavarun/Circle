@@ -1069,6 +1069,7 @@ function paintPanels(){
       el.style.setProperty('--cc', CARD_COLORS[i % CARD_COLORS.length]);
     });
   };
+  document.querySelectorAll('.sec-head > .tile').forEach(t => t.remove());
   const hl = document.querySelector('.hilite > .meta');
   if(hl && !hl.querySelector('.tile')) hl.insertAdjacentHTML('afterbegin', tile('spark', '#a2917a', 'sm'));
   tint(document.getElementById('insightGrid'), true);
@@ -1704,7 +1705,7 @@ function renderToday(){
     <li class="item">
       <div class="row ${r.log[viewDate]?'done':''}">
         <button class="chk" data-rtick="${r.id}" aria-label="${r.log[viewDate]?'Mark not done':'Mark done'}: ${esc(r.name)}" ${future?'disabled title="You can tick this on the day"':''}>${CHECK}</button>
-        ${tile('routines', muted(r.color), 'sm')}
+        <span class="dot" style="background:${r.color}"></span>
         <span class="t"><span class="edit-t" data-edit="routine:${r.id}" title="Click to rename">${esc(r.name)}</span>${r.end?`<span class="meta" style="display:block">Until ${short(r.end)}</span>`:''}</span>
         <span class="meta">${streak(r)}d streak</span>
         ${noteBtn('routine',r.id,r.notes,r.imgs)}
@@ -1970,7 +1971,7 @@ function renderLists(){
     const folded = listView === 'all' && !openLists[l.id];
     const cc = listColor(l);
     return `<article class="card list-card tinted ${folded?'folded':''}" data-listid="${l.id}" style="--cc:${cc}">
-      <div class="rhead">${all.length>1 && listView==='all' ? `<button type="button" class="grip lgrip" data-lgrip="${l.id}" aria-label="Drag to reorder ${esc(l.name)}">${GRIP}</button>` : ''}<button type="button" class="fold" data-fold="${l.id}" aria-expanded="${!folded}" aria-label="${folded?'Show items':'Hide items'}">${folded?'+':'−'}</button>${tile('lists', cc, 'sm')}<h3 class="edit-t" data-edit="list:${l.id}" title="Click to rename">${esc(l.name)}</h3>${noteBtn('list', l.id, l.notes, l.imgs)}<button class="icon-sm danger" data-dellist="${l.id}" aria-label="Delete checklist" title="Delete">${TRASH}</button></div>
+      <div class="rhead">${all.length>1 && listView==='all' ? `<button type="button" class="grip lgrip" data-lgrip="${l.id}" aria-label="Drag to reorder ${esc(l.name)}">${GRIP}</button>` : ''}<button type="button" class="fold" data-fold="${l.id}" aria-expanded="${!folded}" aria-label="${folded?'Show items':'Hide items'}">${folded?'+':'−'}</button><h3 class="edit-t" data-edit="list:${l.id}" title="Click to rename">${esc(l.name)}</h3>${noteBtn('list', l.id, l.notes, l.imgs)}<button class="icon-sm danger" data-dellist="${l.id}" aria-label="Delete checklist" title="Delete">${TRASH}</button></div>
       <div><div class="bar"><i style="width:${n?d/n*100:0}%;background:${cc}"></i></div><p class="meta count" style="margin-top:6px">${d} of ${n} checked</p></div>
       ${folded ? '' : `
       ${noteBlock('list', l.id, l.notes)}
