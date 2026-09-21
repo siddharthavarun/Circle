@@ -1,5 +1,5 @@
 // Circle Daily service worker: works offline, picks up new versions when online.
-const VERSION = 'circle-v30';
+const VERSION = 'circle-v31';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/icon.svg'];
 
 self.addEventListener('install', e => {
@@ -14,7 +14,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   // App page: network first so updates arrive, cached copy when offline
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(res => { const copy = res.clone(); caches.open(VERSION).then(c => c.put('./index.html', copy)); return res; })
+    e.respondWith(fetch(req, {cache:'reload'}).then(res => { const copy = res.clone(); caches.open(VERSION).then(c => c.put('./index.html', copy)); return res; })
       .catch(() => caches.match('./index.html')));
     return;
   }
