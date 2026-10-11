@@ -1,6 +1,6 @@
 // Circle Daily service worker: keeps the app usable offline.
 // Bump VERSION whenever you change index.html so phones pick up the new version.
-const VERSION = "circle-v51";
+const VERSION = "circle-v52";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest"];
 const OPTIONAL = ["./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png", "./icons/favicon.svg"];
 

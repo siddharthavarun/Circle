@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Circle Daily</title>
+<title>Circle</title>
 <meta name="description" content="To-dos, routines, events and checklists for your day.">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
@@ -2048,6 +2048,15 @@ function renderEvents(){
   if(isMobile()){ $('#eventGrid').innerHTML = body; $('#mEventForm').innerHTML = form; }
   else { $('#mEventForm').innerHTML = ''; $('#eventGrid').innerHTML = form + body; }
 }
+function syncEventDates(){
+  readEvDraft();
+  const d = document.getElementById('evDate'), en = document.getElementById('evEnd'), tm = document.getElementById('evTime');
+  const start = evDraft.date || viewDate;
+  setDval(d, short(start));
+  if(en){ en.min = start; setDval(en, evDraft.end ? short(evDraft.end) : 'Same day', !evDraft.end); }
+  if(tm) setDval(tm, evDraft.time ? fmtTime(evDraft.time) : 'All day', !evDraft.time);
+}
+document.addEventListener('input', e => { if(e.target.id==='evDate' || e.target.id==='evEnd' || e.target.id==='evTime') syncEventDates(); });
 function readEvDraft(){
   const g = id => { const el = document.getElementById(id); return el ? el.value : ''; };
   if(document.getElementById('evTitle')){
@@ -3192,9 +3201,22 @@ document.addEventListener('input', e => {
   if(t.id==='rStart'){ draft.start=t.value||TODAY; if(draft.end && draft.end<draft.start) draft.end=''; }
   if(t.id==='rEnd') draft.end=t.value||'';
 });
-document.addEventListener('change', e => { if(e.target.id==='rStart' || e.target.id==='rEnd') renderRoutines(); });
+/* Date and time fields update their label in place. Rebuilding the form here closed the
+   phone's date/time wheel as soon as it moved, so it picked a value before you were done. */
+function setDval(input, text, dim){
+  const v = input && input.closest('.dpick') && input.closest('.dpick').querySelector('.dval');
+  if(v){ v.textContent = text; v.classList.toggle('dim', !!dim); }
+}
+function syncRoutineDates(){
+  const s = document.getElementById('rStart'), en = document.getElementById('rEnd');
+  setDval(s, short(draft.start||TODAY));
+  if(en){ en.min = draft.start; if(en.value !== draft.end) en.value = draft.end; setDval(en, draft.end ? short(draft.end) : 'No end', !draft.end); }
+  document.querySelectorAll('[data-dur]').forEach(b => { const n = +b.dataset.dur; b.classList.toggle('on', n===0 ? !draft.end : draft.end===addDays(draft.start||TODAY, n-1)); });
+}
+document.addEventListener('input', e => { if(e.target.id==='rStart' || e.target.id==='rEnd') syncRoutineDates(); });
+document.addEventListener('change', e => { if(e.target.id==='rStart' || e.target.id==='rEnd') syncRoutineDates(); });
 document.addEventListener('change', e => {
-  if(e.target.id==='evDate' || e.target.id==='evEnd' || e.target.id==='evTime'){ readEvDraft(); renderEvents(); }
+  if(e.target.id==='evDate' || e.target.id==='evEnd' || e.target.id==='evTime') syncEventDates();
 });
 document.addEventListener('keydown', e => {
   const d = e.target.dataset || {};
@@ -3624,8 +3646,15 @@ function saveEditFields(doCommit){
 }
 $('#mTodoEdit').addEventListener('input', e => { if(e.target.tagName==='TEXTAREA') autosize(e.target); });
 $('#mTodoEdit').addEventListener('change', e => {
-  if(e.target.id==='eDate' && e.target.value){ saveEditFields(); const t=state.todos.find(x=>x.id===editId); if(t && t.date!==e.target.value){ t.date=e.target.value; touch(); commit(); renderTodoEdit(); toast(`Moved to ${e.target.value===TODAY?'today':short(e.target.value)}`); } }
+  if(e.target.id==='eDate' && e.target.value){ const sp = e.target.parentElement.querySelector('span'); if(sp) sp.textContent = e.target.value===TODAY ? 'Today' : short(e.target.value); }
 });
+function applyEditDate(el){
+  if(!el || !el.value) return;
+  saveEditFields(); const t=state.todos.find(x=>x.id===editId);
+  if(t && t.date!==el.value){ t.date=el.value; touch(); commit(); renderTodoEdit(); toast(`Moved to ${el.value===TODAY?'today':short(el.value)}`); }
+}
+$('#mTodoEdit').addEventListener('focusout', e => { if(e.target.id==='eDate') applyEditDate(e.target); });
+$('#mTodoEdit').addEventListener('change', e => { if(e.target.id==='eDate' && document.activeElement !== e.target) applyEditDate(e.target); });
 $('#mTodoEdit').addEventListener('click', e => {
   const t=state.todos.find(x=>x.id===editId); if(!t) return;
   if(e.target.closest('#eDone')){ saveEditFields(); t.done=!t.done; vibrate(12); touch(); commit(); renderTodoEdit(); }
