@@ -1,6 +1,6 @@
 // Circle Daily service worker: keeps the app usable offline.
 // Bump VERSION whenever you change index.html so phones pick up the new version.
-const VERSION = "circle-v52";
+const VERSION = "circle-v53";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest"];
 const OPTIONAL = ["./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png", "./icons/favicon.svg"];
 
@@ -30,7 +30,10 @@ self.addEventListener("fetch", e => {
       return;
     }
     if (url.pathname.endsWith("/sw.js")) return;   // the app reads this to show its version number
-    e.respondWith(caches.match(req).then(hit => hit || fetch(req)));
+    // Network first, so new icons and files show up as soon as they are on GitHub; the saved copy is only for offline.
+    e.respondWith(fetch(req)
+      .then(res => { if (res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); } return res; })
+      .catch(() => caches.match(req)));
     return;
   }
 
