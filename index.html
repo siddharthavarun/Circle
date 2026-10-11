@@ -455,10 +455,22 @@ body{min-height:100vh;min-height:100dvh}
 .m .chk{width:26px;height:26px}
 .m .row .pchip.add,.m .row .tchip.add,.m #todoList .row .icon-sm:not(.has):not([data-postpone]):not([data-focus]){display:none}
 .m #todoList .row .icon-sm[data-focus]{display:grid;opacity:.9}
-/* a task row wraps onto a second line on a phone instead of squeezing the text away */
-.m #todoList .item > .row{flex-wrap:wrap;row-gap:4px}
-.m #todoList .item > .row > .t{flex:1 1 55%;min-width:110px}
-.m #todoList .item > .row > .del{margin-left:auto}
+/* on a phone the task text gets the full width and its actions sit on one line underneath */
+/* the same on a computer, where the To-dos column can be narrow */
+#todoList .item > .row{flex-wrap:wrap;row-gap:2px;column-gap:12px}
+#todoList .item > .row > .t{flex:1 1 0;min-width:0}
+#todoList .acts{display:flex;align-items:center;flex-wrap:wrap;gap:6px;flex-basis:100%;min-width:0;padding-left:34px;min-height:28px}
+#todoList .acts .del{margin-left:auto}
+.m #todoList .item > .row{min-height:0;padding:9px 8px 4px}
+.m #todoList .item > .row > .t{font-size:16px}
+.m #todoList .acts{flex-wrap:nowrap;padding-left:38px}
+.m #todoList .acts:not(:has(.pchip:not(.add),.tchip:not(.add),.subchip,.tagchip)) .icon-sm:first-child{margin-left:-6px}
+.m #todoList .acts .del{margin-left:auto}
+.m #todoList .acts .icon-sm,.m #todoList .acts .del{width:30px;height:30px;min-height:30px;border-radius:9px}
+.m #todoList .acts .del{font-size:19px}
+.m #todoList .acts .icon-sm svg{width:15px;height:15px}
+.m #todoList .acts .pchip,.m #todoList .acts .tchip,.m #todoList .acts .subchip{padding:3px 9px;font-size:12px}
+.m #todoList .item .note-card{margin:0 0 8px 46px;width:calc(100% - 54px)}
 .m #todoList .row .icon-sm[data-postpone]{opacity:.6;display:grid}
 /* delete controls are easy to hit on a phone */
 .m .row .del{display:grid;place-items:center;width:36px;height:36px;flex:none;font-size:22px;line-height:1;opacity:.6;border-radius:10px}
@@ -1773,8 +1785,8 @@ function renderToday(){
         <button class="chk" data-todo="${t.id}" aria-label="${t.done?'Mark not done':'Mark done'}">${CHECK}</button>
         ${t.top ? `<span class="star" title="One of today’s three">${STAR}</span>` : ''}
         <span class="t editable" data-edittext="${t.id}" title="Click to edit">${esc(t.text)}${t.carried?' <span class="mini" title="Moved from '+short(t.fromDate||t.date)+'">carried over</span>':''}${t.repeat?' <span class="mini">'+REPEAT_I+'</span>':''}</span>
-        ${tagChips}${subChip}${pchip}${tchip}${t.top && !t.done ? `<button class="icon-sm focus-btn" data-focus="${t.id}" aria-label="Start focus timer" title="Focus on this">${PLAY_S}</button>` : ''}<button class="icon-sm" data-postpone="${t.id}" aria-label="Move this task" title="Move to another day">${LATER}</button>${noteBtn('todo',t.id,t.notes,t.imgs)}
-        <button class="del" data-deltodo="${t.id}" aria-label="Delete to-do">×</button>
+        <span class="acts">${tagChips}${subChip}${pchip}${tchip}${t.top && !t.done ? `<button class="icon-sm focus-btn" data-focus="${t.id}" aria-label="Start focus timer" title="Focus on this">${PLAY_S}</button>` : ''}<button class="icon-sm" data-postpone="${t.id}" aria-label="Move this task" title="Move to another day">${LATER}</button>${noteBtn('todo',t.id,t.notes,t.imgs)}
+        <button class="del" data-deltodo="${t.id}" aria-label="Delete to-do">×</button></span>
       </div>${expanded[t.id]?subBlock(t):''}${noteBlock('todo',t.id,t.notes)}</li>`;
   }).join('') : '<li class="empty">Nothing planned. Add your first to-do above.</li>';
   flipTodos();
@@ -1820,7 +1832,6 @@ function renderToday(){
     <li class="item">
       <div class="row ${r.log[viewDate]?'done':''} ${justTicked===r.id?'just':''}" data-rrow="${r.id}">
         <button class="chk" data-rtick="${r.id}" aria-label="${r.log[viewDate]?'Mark not done':'Mark done'}: ${esc(r.name)}" ${future?'disabled title="You can tick this on the day"':''}>${CHECK}</button>
-        <span class="dot" style="background:${r.color}"></span>
         <span class="t"><span class="edit-t" data-edit="routine:${r.id}" title="Click to rename">${esc(r.name)}</span>${r.end?`<span class="meta" style="display:block">Until ${short(r.end)}</span>`:''}</span>
         <span class="meta">${streak(r)}d streak</span>
         ${(() => { const dn = (r.dayNotes||{})[viewDate] || {}; const ref = r.id+'~'+viewDate;
